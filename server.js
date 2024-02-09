@@ -14,10 +14,7 @@ connectDB();
 
 const app = express(); // Initialisation de l'app Express
 
-app.use(cors({
-    origin: 'https://invoice-frontend-lw94.vercel.app/', // Autoriser seulement cette origine à accéder à l'API
-}));
-
+app.use(cors()); // Activer CORS pour toutes les requêtes
 
 // Body parser pour lire les données du corps de la requête
 app.use(express.json());

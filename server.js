@@ -14,9 +14,7 @@ connectDB();
 
 const app = express(); // Initialisation de l'app Express
 
-app.use(cors({
-    origin: 'https://invoice-front-app.onrender.com', // Autoriser seulement cette origine à accéder à l'API
-}));
+app.use(cors());
 
 
 // Body parser pour lire les données du corps de la requête

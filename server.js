@@ -32,6 +32,12 @@ const client = require('./routes/clientRoutes');
 app.use('/api/invoice', invoice);
 app.use('/api/client', client);
 
+// Correction pour définir une route racine
+app.get('/', function (req, res) {
+    return res.status(200).json({ message: 'Welcome to the API' });
+});
+
+
 // Middleware de gestion des erreurs
 app.use(errorHandler);
 

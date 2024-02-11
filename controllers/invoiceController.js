@@ -12,42 +12,14 @@ const upload = multer({ dest: 'uploads/' });
 exports.uploadInvoiceFile = upload.single('file');
 
 
-// @desc   Obtenir toutes les factures
-// @route  GET /api/invoices
-// @access Public
 exports.getInvoices = asyncHandler(async (req, res, next) => {
-    let query;
+    
+        // Sans pagination, on récupère simplement toutes les factures
+        const invoices = await Invoice.find();
 
-    // Pagination
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 25;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const total = await Invoice.countDocuments();
-
-    query = Invoice.find().skip(startIndex).limit(limit);
-
-    // Exécution de la requête
-    const invoices = await query;
-
-    // Pagination résultat
-    const pagination = {};
-
-    if (endIndex < total) {
-        pagination.next = {
-            page: page + 1,
-            limit
-        };
-    }
-
-    if (startIndex > 0) {
-        pagination.prev = {
-            page: page - 1,
-            limit
-        };
-    }
-
-    res.status(200).json({ success: true, count: invoices.length, pagination, data: invoices });
+        // On renvoie les factures récupérées
+        res.status(200).json({ success: true, count: invoices.length, data: invoices });
+    
 });
 
 // @desc   Obtenir une seule facture par ID
@@ -293,8 +265,8 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res, next) => {
 });
 
 
-exports.addInvoicesFromExcel = async (req, res, next) => {
-    try {
+exports.addInvoicesFromExcel = asyncHandler( async (req, res, next) => {
+   
       if (req.file && req.file.path) {
         // Lire le fichier Excel
         readExcel(req.file.path).then(async (rows) => {
@@ -353,9 +325,7 @@ exports.addInvoicesFromExcel = async (req, res, next) => {
       } else {
         throw new Error('Fichier non fourni ou non valide');
       }
-    } catch (error) {
-      return next(new ErrorResponse(error.message || 'Erreur lors de l\'ajout des factures depuis Excel', 500));
-    }
-  };
+    
+  });
   
 

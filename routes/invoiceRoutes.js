@@ -8,7 +8,8 @@ const {
     getInvoiceStats,
     getFilteredInvoiceStats, // Assurez-vous que cette fonction est définie dans votre contrôleur
     getInvoicesSummaryByClient,
-    getClientMonthlyInvoiceStats
+    getClientMonthlyInvoiceStats,
+    uploadInvoiceFile, addInvoicesFromExcel 
 } = require('../controllers/invoiceController');
 
 const router = express.Router();
@@ -19,6 +20,8 @@ const router = express.Router();
 router.route('/')
     .get(getInvoices)       // Obtenir toutes les factures
     .post(createInvoice);   // Créer une nouvelle facture
+    
+router.post('/upload', uploadInvoiceFile, addInvoicesFromExcel);
 
 // Route pour obtenir les statistiques globales
 router.get('/stats', getInvoiceStats);

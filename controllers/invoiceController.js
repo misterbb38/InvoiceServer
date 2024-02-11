@@ -1,7 +1,15 @@
 const ErrorResponse = require('../utils/errorResponse.js')
 const asyncHandler = require('../middleware/async.js')
 const Invoice = require('../models/invoiceModel.js')
-const mongoose = require('mongoose')
+const multer = require('multer');
+const readExcel = require('read-excel-file/node');
+
+
+// Configuration de Multer pour le téléchargement de fichiers Excel
+const upload = multer({ dest: 'uploads/' });
+
+// Middleware pour la route de téléchargement de fichier
+exports.uploadInvoiceFile = upload.single('file');
 
 
 // @desc   Obtenir toutes les factures
@@ -284,4 +292,70 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res, next) => {
     res.status(200).json({ success: true, data: results });
 });
 
+
+exports.addInvoicesFromExcel = async (req, res, next) => {
+    try {
+      if (req.file && req.file.path) {
+        // Lire le fichier Excel
+        readExcel(req.file.path).then(async (rows) => {
+          // Supposer que la première ligne contient les en-têtes
+          const headers = rows.shift();
+  
+          // Regrouper les lignes par FactureID
+          const groupedByInvoiceId = rows.reduce((acc, row) => {
+            const invoiceData = row.reduce((invoiceObj, col, index) => {
+              invoiceObj[headers[index]] = col;
+              return invoiceObj;
+            }, {});
+  
+            if (!acc[invoiceData.FactureID]) {
+              acc[invoiceData.FactureID] = [];
+            }
+  
+            acc[invoiceData.FactureID].push(invoiceData);
+            return acc;
+          }, {});
+  
+          // Traitement de chaque facture
+          for (const [invoiceId, items] of Object.entries(groupedByInvoiceId)) {
+            const { ClientName, ClientAddress, ClientEmail, ClientTelephone, Date, Type, Status, TotalFacture } = items[0]; // Infos facture basées sur le premier article
+  
+            // Créer l'objet facture sans les articles pour l'instant
+            let invoice = {
+              client: {
+                name: ClientName,
+                address: ClientAddress,
+                email: ClientEmail,
+                telephone: ClientTelephone,
+              },
+              date: Date,
+              total: TotalFacture,
+              type: Type,
+              status: Status,
+              items: items.map(item => ({ // Transformation des articles
+                ref: item.Ref,
+                description: item.Description,
+                quantity: item.Quantity,
+                price: item.Price,
+                total: item.TotalItem,
+              }))
+            };
+  
+            // Insertion de la facture dans la base de données
+            await Invoice.create(invoice);
+          }
+  
+          res.status(201).json({
+            success: true,
+            message: 'Factures ajoutées avec succès depuis le fichier Excel'
+          });
+        });
+      } else {
+        throw new Error('Fichier non fourni ou non valide');
+      }
+    } catch (error) {
+      return next(new ErrorResponse(error.message || 'Erreur lors de l\'ajout des factures depuis Excel', 500));
+    }
+  };
+  
 

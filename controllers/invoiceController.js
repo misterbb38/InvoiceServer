@@ -192,41 +192,84 @@ exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
 // @desc   Obtenir les factures regroupées par client avec total et compte par état
 // @route  GET /api/invoices/summary-by-client
 // @access Public
+// exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
+//     const aggregateQuery = [
+//         {
+//             $group: {
+//                 _id: "$client", // Grouper par client
+//                 totalAmountPaid: {
+//                     $sum: {
+//                         $cond: [{ $eq: ["$status", "paid"] }, "$total", 0] // Somme des montants pour les factures payées
+//                     }
+//                 },
+//                 totalAmountPending: {
+//                     $sum: {
+//                         $cond: [{ $eq: ["$status", "pending"] }, "$total", 0] // Somme des montants pour les factures en attente
+//                     }
+//                 },
+//                 totalAmountCancelled: {
+//                     $sum: {
+//                         $cond: [{ $eq: ["$status", "cancelled"] }, "$total", 0] // Somme des montants pour les factures annulées
+//                     }
+//                 },
+//                 countPaid: {
+//                     $sum: {
+//                         $cond: [{ $eq: ["$status", "paid"] }, 1, 0] // Nombre de factures payées
+//                     }
+//                 },
+//                 countPending: {
+//                     $sum: {
+//                         $cond: [{ $eq: ["$status", "pending"] }, 1, 0] // Nombre de factures en attente
+//                     }
+//                 },
+//                 countCancelled: {
+//                     $sum: {
+//                         $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] // Nombre de factures annulées
+//                     }
+//                 }
+//             }
+//         },
+//         {
+//             $project: {
+//                 _id: 0,
+//                 client: "$_id",
+//                 totalAmountPaid: 1,
+//                 totalAmountPending: 1,
+//                 totalAmountCancelled: 1,
+//                 countPaid: 1,
+//                 countPending: 1,
+//                 countCancelled: 1
+//             }
+//         }
+//     ];
+
+//     const clientSummary = await Invoice.aggregate(aggregateQuery);
+
+//     res.status(200).json({ success: true, data: clientSummary });
+// });
+// controllers/invoiceController.js
 exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
+    const { year } = req.query; // Récupérer l'année à partir des paramètres de requête
+
+    let matchStage = {};
+    if (year) {
+        const yearInt = parseInt(year, 10);
+        const startDate = new Date(yearInt, 0, 1);
+        const endDate = new Date(yearInt + 1, 0, 1);
+        matchStage = { $match: { date: { $gte: startDate, $lt: endDate } } };
+    }
+
     const aggregateQuery = [
+        matchStage,
         {
             $group: {
-                _id: "$client", // Grouper par client
-                totalAmountPaid: {
-                    $sum: {
-                        $cond: [{ $eq: ["$status", "paid"] }, "$total", 0] // Somme des montants pour les factures payées
-                    }
-                },
-                totalAmountPending: {
-                    $sum: {
-                        $cond: [{ $eq: ["$status", "pending"] }, "$total", 0] // Somme des montants pour les factures en attente
-                    }
-                },
-                totalAmountCancelled: {
-                    $sum: {
-                        $cond: [{ $eq: ["$status", "cancelled"] }, "$total", 0] // Somme des montants pour les factures annulées
-                    }
-                },
-                countPaid: {
-                    $sum: {
-                        $cond: [{ $eq: ["$status", "paid"] }, 1, 0] // Nombre de factures payées
-                    }
-                },
-                countPending: {
-                    $sum: {
-                        $cond: [{ $eq: ["$status", "pending"] }, 1, 0] // Nombre de factures en attente
-                    }
-                },
-                countCancelled: {
-                    $sum: {
-                        $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] // Nombre de factures annulées
-                    }
-                }
+                _id: "$client",
+                totalAmountPaid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, "$total", 0] } },
+                totalAmountPending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, "$total", 0] } },
+                totalAmountCancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, "$total", 0] } },
+                countPaid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, 1, 0] } },
+                countPending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
+                countCancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } }
             }
         },
         {
@@ -241,12 +284,13 @@ exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
                 countCancelled: 1
             }
         }
-    ];
+    ].filter(stage => Object.keys(stage).length > 0); // Filtrer les étapes vides
 
     const clientSummary = await Invoice.aggregate(aggregateQuery);
 
     res.status(200).json({ success: true, data: clientSummary });
 });
+
 
 
 ////

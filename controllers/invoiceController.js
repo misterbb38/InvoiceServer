@@ -102,8 +102,9 @@ exports.getInvoiceStats = asyncHandler(async (req, res, next) => {
 // @desc   Obtenir des statistiques sur les factures filtrées par période
 // @route  GET /api/invoices/stats/filtered
 // @access Public
-exports.getFilteredInvoiceStats= asyncHandler(async (req, res, next) => {
-    const year = new Date().getFullYear(); // ou une année spécifique
+exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
+    // Récupérer l'année à partir de la requête, utiliser l'année courante par défaut
+    const year = parseInt(req.query.year) || new Date().getFullYear();
 
     const summary = await Invoice.aggregate([
         {
@@ -116,7 +117,7 @@ exports.getFilteredInvoiceStats= asyncHandler(async (req, res, next) => {
         },
         {
             $match: {
-                year: year // Filtrer par année si nécessaire
+                year: year // Filtrer dynamiquement par année
             }
         },
         {
@@ -133,19 +134,23 @@ exports.getFilteredInvoiceStats= asyncHandler(async (req, res, next) => {
 
     // Initialiser les résultats pour chaque statut avec des montants à 0 pour chaque mois
     let results = {
-        paid: Array(12).fill({ totalAmount: 0, count: 0 }),
-        pending: Array(12).fill({ totalAmount: 0, count: 0 }),
-        cancelled: Array(12).fill({ totalAmount: 0, count: 0 })
+        paid: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
+        pending: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
+        cancelled: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 }))
     };
 
     // Remplir les résultats avec les données réelles
     summary.forEach(item => {
         const { month, status } = item._id;
-        results[status][month - 1] = { totalAmount: item.totalAmount, count: item.count };
+        // Assurez-vous que le statut existe dans les résultats pour éviter des erreurs
+        if (results[status]) {
+            results[status][month - 1] = { totalAmount: item.totalAmount, count: item.count };
+        }
     });
 
     res.status(200).json({ success: true, data: results });
 });
+
 
 
 // @desc   Obtenir les factures regroupées par client avec total et compte par état

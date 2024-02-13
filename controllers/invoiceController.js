@@ -192,62 +192,6 @@ exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
 // @desc   Obtenir les factures regroupées par client avec total et compte par état
 // @route  GET /api/invoices/summary-by-client
 // @access Public
-// exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
-//     const aggregateQuery = [
-//         {
-//             $group: {
-//                 _id: "$client", // Grouper par client
-//                 totalAmountPaid: {
-//                     $sum: {
-//                         $cond: [{ $eq: ["$status", "paid"] }, "$total", 0] // Somme des montants pour les factures payées
-//                     }
-//                 },
-//                 totalAmountPending: {
-//                     $sum: {
-//                         $cond: [{ $eq: ["$status", "pending"] }, "$total", 0] // Somme des montants pour les factures en attente
-//                     }
-//                 },
-//                 totalAmountCancelled: {
-//                     $sum: {
-//                         $cond: [{ $eq: ["$status", "cancelled"] }, "$total", 0] // Somme des montants pour les factures annulées
-//                     }
-//                 },
-//                 countPaid: {
-//                     $sum: {
-//                         $cond: [{ $eq: ["$status", "paid"] }, 1, 0] // Nombre de factures payées
-//                     }
-//                 },
-//                 countPending: {
-//                     $sum: {
-//                         $cond: [{ $eq: ["$status", "pending"] }, 1, 0] // Nombre de factures en attente
-//                     }
-//                 },
-//                 countCancelled: {
-//                     $sum: {
-//                         $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] // Nombre de factures annulées
-//                     }
-//                 }
-//             }
-//         },
-//         {
-//             $project: {
-//                 _id: 0,
-//                 client: "$_id",
-//                 totalAmountPaid: 1,
-//                 totalAmountPending: 1,
-//                 totalAmountCancelled: 1,
-//                 countPaid: 1,
-//                 countPending: 1,
-//                 countCancelled: 1
-//             }
-//         }
-//     ];
-
-//     const clientSummary = await Invoice.aggregate(aggregateQuery);
-
-//     res.status(200).json({ success: true, data: clientSummary });
-// });
-// controllers/invoiceController.js
 exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
     const { year } = req.query; // Récupérer l'année à partir des paramètres de requête
 
@@ -294,8 +238,9 @@ exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
 
 
 ////
-exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res, next) => {
-    const year = new Date().getFullYear(); // ou une année spécifique
+
+exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res) => {
+    const year = req.query.year ? parseInt(req.query.year, 10) : new Date().getFullYear();
 
     const summary = await Invoice.aggregate([
         {
@@ -308,9 +253,7 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res, next) => {
             }
         },
         {
-            $match: {
-                year: year // Filtrer par année
-            }
+            $match: { year }
         },
         {
             $group: {
@@ -324,30 +267,25 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res, next) => {
         }
     ]);
 
-    // Structurer les données pour chaque client
+    // Transformer les données en une structure plus facile à utiliser côté client
     let results = {};
-
-    summary.forEach(item => {
-        const { client, month, status } = item._id;
-
-        // Initialiser le client s'il n'existe pas déjà
+    summary.forEach(({ _id, totalAmount, count }) => {
+        const { client, month, status } = _id;
         if (!results[client.name]) {
-            results[client.name] = Array(12).fill().map(() => ({
-                paid: { totalAmount: 0, count: 0 },
-                pending: { totalAmount: 0, count: 0 },
-                cancelled: { totalAmount: 0, count: 0 }
+            results[client.name] = Array.from({ length: 12 }, () => ({
+                paid: { count: 0, totalAmount: 0 },
+                pending: { count: 0, totalAmount: 0 },
+                cancelled: { count: 0, totalAmount: 0 }
             }));
         }
-
-        // Remplir les données pour chaque mois et chaque statut
-        results[client.name][month - 1][status] = {
-            totalAmount: item.totalAmount,
-            count: item.count
-        };
+        if (results[client.name][month - 1][status]) {
+            results[client.name][month - 1][status] = { count, totalAmount };
+        }
     });
 
-    res.status(200).json({ success: true, data: results });
+    res.json({ success: true, data: results });
 });
+
 
 
 exports.addInvoicesFromExcel = asyncHandler( async (req, res, next) => {

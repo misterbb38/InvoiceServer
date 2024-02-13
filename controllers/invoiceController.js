@@ -81,20 +81,56 @@ exports.deleteInvoice = asyncHandler(async (req, res, next) => {
 // @desc   Obtenir des statistiques sur les factures
 // @route  GET /api/invoices/stats
 // @access Public
+
 exports.getInvoiceStats = asyncHandler(async (req, res, next) => {
-    const stats = await Invoice.aggregate([
-        // Groupement par statut
+    const { year } = req.query; // Récupérer l'année à partir des paramètres de requête, si fournie
+
+    let pipeline = [];
+
+    // Conditionnellement ajouter un filtre $match si un paramètre 'year' est fourni
+    if (year) {
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+        pipeline.push({
+            $match: {
+                date: { $gte: startDate, $lte: endDate }
+            }
+        });
+    }
+
+    // Continuer avec les autres étapes de l'agrégation
+    pipeline.push(
+        {
+            $addFields: {
+                "year": { $year: "$date" }
+            }
+        },
         {
             $group: {
-                _id: "$status",
+                _id: { status: "$status", year: "$year" },
                 totalAmount: { $sum: "$total" },
                 count: { $sum: 1 }
             }
+        },
+        {
+            $sort: { "_id.year": 1, "_id.status": 1 }
         }
-    ]);
+    );
 
-    res.status(200).json({ success: true, data: stats });
+    // Exécuter le pipeline d'agrégation
+    try {
+        const stats = await Invoice.aggregate(pipeline);
+        res.status(200).json({ success: true, data: stats });
+    } catch (error) {
+        console.error("Erreur lors de l'agrégation des statistiques des factures :", error);
+        res.status(500).json({ success: false, message: "Erreur interne du serveur lors de la récupération des statistiques des factures." });
+    }
 });
+
+
+
+
+
 
 
 ///

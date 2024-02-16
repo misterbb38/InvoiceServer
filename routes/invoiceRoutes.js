@@ -11,6 +11,7 @@ const {
     getClientMonthlyInvoiceStats,
     uploadInvoiceFile, addInvoicesFromExcel 
 } = require('../controllers/invoiceController');
+const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -18,22 +19,22 @@ const router = express.Router();
 
 // Routes pour les factures
 router.route('/')
-    .get(getInvoices)       // Obtenir toutes les factures
-    .post(createInvoice);   // Créer une nouvelle facture
+    .get( protect, getInvoices)       // Obtenir toutes les factures
+    .post(  protect, createInvoice);   // Créer une nouvelle facture
     
-router.post('/upload', uploadInvoiceFile, addInvoicesFromExcel);
+router.post('/upload',  protect, uploadInvoiceFile, addInvoicesFromExcel);
 
 // Route pour obtenir les statistiques globales
-router.get('/stats', getInvoiceStats);
+router.get('/stats',  protect,  getInvoiceStats);
 
 // Route pour obtenir les statistiques filtrées
-router.get('/FilteredStats', getFilteredInvoiceStats); // Utilisation de la bonne fonction
-router.get('/summaryclient',getInvoicesSummaryByClient);
-router.get('/clientMonthlyInvoiceStats',getClientMonthlyInvoiceStats);
+router.get('/FilteredStats',  protect,  getFilteredInvoiceStats); // Utilisation de la bonne fonction
+router.get('/summaryclient',  protect, getInvoicesSummaryByClient);
+router.get('/clientMonthlyInvoiceStats',  protect, getClientMonthlyInvoiceStats);
 
 router.route('/:id')
-    .get(getInvoice)        // Obtenir une facture spécifique par ID
-    .put(updateInvoice)    // Mettre à jour une facture spécifique par ID
-    .delete(deleteInvoice); // Supprimer une facture spécifique par ID
+    .get(  protect, getInvoice)        // Obtenir une facture spécifique par ID
+    .put(  protect, updateInvoice)    // Mettre à jour une facture spécifique par ID
+    .delete( protect, deleteInvoice); // Supprimer une facture spécifique par ID
 
 module.exports = router;

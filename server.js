@@ -31,10 +31,12 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 const invoice = require('./routes/invoiceRoutes');
 const client = require('./routes/clientRoutes');
+const user = require('./routes/userRoutes');
 
 // Monter les routeurs
 app.use('/api/invoice', invoice);
 app.use('/api/client', client);
+app.use('/api/user', user);
 
 // Correction pour définir une route racine
 app.get('/', function (req, res) {

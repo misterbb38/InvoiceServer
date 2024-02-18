@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
   devise: {
     type: String,
     required: [true, 'La devise est requise'],
-    default: 'EUR',
+    default: 'Fcfa',
   },
   userType: {
     type: String,

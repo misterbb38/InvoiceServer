@@ -146,13 +146,13 @@ exports.getClient = asyncHandler(async (req, res, next) => {
 // @route   POST /api/clients
 // @access  Private
 exports.createClient = asyncHandler(async (req, res, next) => {
-    const { nom, email, adresse, telephone } = req.body;
+    const { name, email, address, telephone } = req.body;
 
     const client = await Client.create({
         user: req.user._id,
-        nom,
+        name,
         email,
-        adresse,
+        address,
         telephone
     });
 

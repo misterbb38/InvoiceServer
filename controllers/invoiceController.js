@@ -11,7 +11,7 @@ const upload = multer({ dest: 'uploads/' });
     
 // Middleware pour la route de téléchargement de fichier
 exports.uploadInvoiceFile = upload.single('file');
-
+ 
 
 exports.getInvoices = asyncHandler(async (req, res, next) => {
     
@@ -62,21 +62,6 @@ exports.createInvoice = asyncHandler(async (req, res, next) => {
 // @desc   Mettre à jour une facture
 // @route  PUT /api/invoices/:id
 // @access Private
-// exports.updateInvoice = asyncHandler(async (req, res, next) => {
-//     let invoice = await Invoice.findById({ _id: req.params.id, user: req.user._id });
-
-//     if (!invoice) {
-//         return next(new ErrorResponse(`Facture non trouvée avec l'ID ${req.params.id}`, 404));
-//     }
-
-//     invoice = await Invoice.findByIdAndUpdate(req.params.id, req.body, {
-//         new: true,
-//         runValidators: true
-//     });
-
-//     res.status(200).json({ success: true, data: invoice });
-// });
-
 exports.updateInvoice = asyncHandler(async (req, res, next) => {
     // Trouver la facture appartenant à l'utilisateur authentifié
     let invoice = await Invoice.findOne({ _id: req.params.id, user: req.user._id });
@@ -125,61 +110,16 @@ exports.deleteInvoice = asyncHandler(async (req, res, next) => {
 // @desc   Obtenir des statistiques sur les factures
 // @route  GET /api/invoices/stats
 // @access Public
-
-// exports.getInvoiceStats = asyncHandler(async (req, res, next) => {
-//     const { year } = req.query; // Récupérer l'année à partir des paramètres de requête, si fournie
-
-//     let pipeline = [];
-
-//     // Conditionnellement ajouter un filtre $match si un paramètre 'year' est fourni
-//     if (year) {
-//         const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
-//         const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
-//         pipeline.push({
-//             $match: {
-//                 date: { $gte: startDate, $lte: endDate }
-//             }
-//         });
-//     }
-
-//     // Continuer avec les autres étapes de l'agrégation
-//     pipeline.push(
-//         {
-//             $addFields: {
-//                 "year": { $year: "$date" }
-//             }
-//         },
-//         {
-//             $group: {
-//                 _id: { status: "$status", year: "$year" },
-//                 totalAmount: { $sum: "$total" },
-//                 count: { $sum: 1 }
-//             }
-//         },
-//         {
-//             $sort: { "_id.year": 1, "_id.status": 1 }
-//         }
-//     );
-
-//     // Exécuter le pipeline d'agrégation
-//     try {
-//         const stats = await Invoice.aggregate(pipeline);
-//         res.status(200).json({ success: true, data: stats });
-//     } catch (error) {
-//         console.error("Erreur lors de l'agrégation des statistiques des factures :", error);
-//         res.status(500).json({ success: false, message: "Erreur interne du serveur lors de la récupération des statistiques des factures." });
-//     }
-// });
-
 exports.getInvoiceStats = asyncHandler(async (req, res, next) => {
     const { year } = req.query; // Récupérer l'année à partir des paramètres de requête, si fournie
     const userId = req.user._id; // Assurez-vous que votre middleware d'authentification définit `req.user`
 
     let pipeline = [
         {
-            // Filtre pour inclure uniquement les factures de l'utilisateur authentifié
+            // Filtre pour inclure uniquement les factures de l'utilisateur authentifié et de type "facture"
             $match: {
-                user: new mongoose.Types.ObjectId(userId)
+                user: new mongoose.Types.ObjectId(userId),
+                type: "facture" // Ajouter ce filtre pour spécifier le type
             }
         }
     ];
@@ -223,6 +163,7 @@ exports.getInvoiceStats = asyncHandler(async (req, res, next) => {
         res.status(500).json({ success: false, message: "Erreur interne du serveur lors de la récupération des statistiques des factures." });
     }
 });
+
 
 
 
@@ -286,7 +227,9 @@ exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
         {
             // Premièrement, filtrer les factures par utilisateur authentifié
             $match: {
-                user: new mongoose.Types.ObjectId(userId)
+                user: new mongoose.Types.ObjectId(userId),
+                 // Ajouter ce filtre pour spécifier le type
+                 type: "facture"
             }
         },
         {
@@ -389,7 +332,8 @@ exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
         {
             // Premier filtre pour restreindre aux factures de l'utilisateur
             $match: {
-                user: new mongoose.Types.ObjectId(userId)
+                user: new mongoose.Types.ObjectId(userId),
+                type: "facture"
             }
         }
     ];
@@ -493,7 +437,8 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res) => {
         {
             // Ajouter un filtre pour ne sélectionner que les factures appartenant à l'utilisateur
             $match: {
-                user: new mongoose.Types.ObjectId(userId) // Assurez-vous que le champ 'user' existe sur vos documents de facture et est correctement lié aux utilisateurs
+                user: new mongoose.Types.ObjectId(userId), // Assurez-vous que le champ 'user' existe sur vos documents de facture et est correctement lié aux utilisateurs
+                type: "facture"
             }
         },
         {

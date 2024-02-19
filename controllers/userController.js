@@ -24,7 +24,8 @@ exports.signup = asyncHandler(async (req, res) => {
 
   // Hachage du mot de passe et création de l'utilisateur
   const user = await User.create({
-    nom, prenom, email, password, adresse, telephone, logo, devise
+    nom, prenom, email, password, adresse, telephone, 
+    logo: req.file ? req.file.path : undefined, // Utiliser le chemin du fichier uploadé, devise
   });
 
   if (user) {
@@ -91,43 +92,85 @@ exports.getProfile = asyncHandler(async (req, res) => {
 });
 
 // Modifier le profil de l'utilisateur
+// exports.updateProfile = asyncHandler(async (req, res) => {
+//     const user = await User.findById(req.user._id);
+  
+//     if (user) {
+//       user.nom = req.body.nom || user.nom;
+//       user.prenom = req.body.prenom || user.prenom;
+//       user.email = req.body.email || user.email;
+//       user.adresse = req.body.adresse || user.adresse;
+//       user.telephone = req.body.telephone || user.telephone;
+//       user.logo = req.body.logo || user.logo;
+//       user.devise = req.body.devise || user.devise;
+  
+//       // Vérifiez si un nouveau mot de passe est fourni
+//       if (req.body.password) {
+//         // Hacher le nouveau mot de passe avant de le sauvegarder
+//         const salt = await bcrypt.genSalt(10);
+//         user.password = await bcrypt.hash(req.body.password, salt);
+//       }
+  
+//       const updatedUser = await user.save();
+  
+//       res.json({
+//         _id: updatedUser._id,
+//         nom: updatedUser.nom,
+//         prenom: updatedUser.prenom,
+//         email: updatedUser.email,
+//         adresse: updatedUser.adresse,
+//         telephone: updatedUser.telephone,
+//         logo: updatedUser.logo,
+//         devise: updatedUser.devise,
+//         token: generateToken(updatedUser._id), // Générer un nouveau token avec le profil mis à jour
+//       });
+//     } else {
+//       res.status(404);
+//       throw new Error('Utilisateur non trouvé.');
+//     }
+//   });
+// Modifier le profil de l'utilisateur
 exports.updateProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id);
-  
-    if (user) {
-      user.nom = req.body.nom || user.nom;
-      user.prenom = req.body.prenom || user.prenom;
-      user.email = req.body.email || user.email;
-      user.adresse = req.body.adresse || user.adresse;
-      user.telephone = req.body.telephone || user.telephone;
-      user.logo = req.body.logo || user.logo;
-      user.devise = req.body.devise || user.devise;
-  
-      // Vérifiez si un nouveau mot de passe est fourni
-      if (req.body.password) {
-        // Hacher le nouveau mot de passe avant de le sauvegarder
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(req.body.password, salt);
-      }
-  
-      const updatedUser = await user.save();
-  
-      res.json({
-        _id: updatedUser._id,
-        nom: updatedUser.nom,
-        prenom: updatedUser.prenom,
-        email: updatedUser.email,
-        adresse: updatedUser.adresse,
-        telephone: updatedUser.telephone,
-        logo: updatedUser.logo,
-        devise: updatedUser.devise,
-        token: generateToken(updatedUser._id), // Générer un nouveau token avec le profil mis à jour
-      });
-    } else {
-      res.status(404);
-      throw new Error('Utilisateur non trouvé.');
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    user.nom = req.body.nom || user.nom;
+    user.prenom = req.body.prenom || user.prenom;
+    user.email = req.body.email || user.email;
+    user.adresse = req.body.adresse || user.adresse;
+    user.telephone = req.body.telephone || user.telephone;
+    // Mettre à jour le logo seulement si un nouveau fichier a été uploadé
+    if (req.file) {
+      user.logo = req.file.path;
     }
-  });
+    user.devise = req.body.devise || user.devise;
+
+    // Vérifiez si un nouveau mot de passe est fourni
+    if (req.body.password) {
+      // Hacher le nouveau mot de passe avant de le sauvegarder
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      nom: updatedUser.nom,
+      prenom: updatedUser.prenom,
+      email: updatedUser.email,
+      adresse: updatedUser.adresse,
+      telephone: updatedUser.telephone,
+      logo: updatedUser.logo, // Assurez-vous que votre client gère correctement le chemin du fichier
+      devise: updatedUser.devise,
+      token: generateToken(updatedUser._id), // Générer un nouveau token avec le profil mis à jour
+    });
+  } else {
+    res.status(404);
+    throw new Error('Utilisateur non trouvé.');
+  }
+});
+
   
 
 // Supprimer un utilisateur

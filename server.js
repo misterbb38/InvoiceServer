@@ -37,6 +37,8 @@ const user = require('./routes/userRoutes');
 app.use('/api/invoice', invoice);
 app.use('/api/client', client);
 app.use('/api/user', user);
+app.use('/uploads', express.static('uploads'));
+
 
 // Correction pour définir une route racine
 app.get('/', function (req, res) {

@@ -50,6 +50,11 @@ const userSchema = new mongoose.Schema({
       values: ['simple', 'superadmin'],
       message: '{VALUE} n\'est pas un type d\'utilisateur valide'
     },
+  nomEntreprise: {
+      type: String,
+      required: [false, 'Le nom de l\'entreprise est optionnel'],
+    },
+    
     default: 'simple',
   },
   stripeCustomerId: {

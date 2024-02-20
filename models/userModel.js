@@ -50,6 +50,9 @@ const userSchema = new mongoose.Schema({
       values: ['simple', 'superadmin'],
       message: '{VALUE} n\'est pas un type d\'utilisateur valide'
     },
+    // Nouveaux champs pour la clé d'accès
+  
+ 
   nomEntreprise: {
       type: String,
       required: [false, 'Le nom de l\'entreprise est optionnel'],
@@ -57,6 +60,11 @@ const userSchema = new mongoose.Schema({
     
     default: 'simple',
   },
+  cleAcces: {
+    type: String,
+    default: '',
+  },
+  dateExpiration: { type: Date },
   stripeCustomerId: {
     type: String,
     required: false, // Non requis initialement, sera rempli après la création du client Stripe

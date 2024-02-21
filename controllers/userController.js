@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const asyncHandler = require('../middleware/async.js');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/userModel'); // Ajustez le chemin selon votre structure
+const Notification = require('../models/notificationModel.js')
+
 
 // Middleware pour générer un token JWT
 const generateToken = (id, isSecure = false) => {
@@ -21,7 +23,64 @@ const generateAccessKeyToken = (user) => {
   return jwt.sign(payload, process.env.ACCESS_KEY_JWT_SECRET, { expiresIn: '1h' });
 };
 
-// Inscription d'un nouvel utilisateur
+
+// exports.signup = asyncHandler(async (req, res) => {
+//   const { nom, prenom, email, password, adresse, telephone, logo, devise } = req.body;
+
+//   // Vérifier si l'utilisateur existe déjà
+//   const userExists = await User.findOne({ email });
+//   if (userExists) {
+//     return res.status(400).json({ message: 'Un utilisateur existe déjà avec cet email.' });
+//   }
+
+//   // Hachage du mot de passe
+//   const salt = await bcrypt.genSalt(10);
+//   const hashedPassword = await bcrypt.hash(password, salt);
+
+//   // Calculer la date d'expiration pour la clé d'accès (7 jours d'essai)
+//   const dateExpiration = new Date();
+//   dateExpiration.setDate(dateExpiration.getDate() + 7);
+
+//   // Création de l'utilisateur avec une clé d'accès valable pour 7 jours
+//   const user = await User.create({
+//     nom,
+//     prenom,
+//     email,
+//     password: hashedPassword,
+//     adresse,
+//     telephone,
+//     logo,
+//     devise,
+//     cleAcces: uuidv4(), // Générer une clé d'accès unique
+//     dateExpiration, // Définir la date d'expiration à 7 jours plus tard
+//     abonnementStatus: 'trial' // Définir le statut de l'abonnement à "trial"
+//   });
+
+//   if (user) {
+//     // Générer une notification pour l'utilisateur indiquant le début de sa période d'essai
+//     await Notification.create({
+//       userId: user._id,
+//       message: "Bienvenue ! Vous bénéficiez de 7 jours d'essai gratuit. Profitez pleinement de nos services.",
+//     });
+
+//     res.status(201).json({
+//       _id: user._id,
+//       nom: user.nom,
+//       prenom: user.prenom,
+//       email: user.email,
+//       adresse: user.adresse,
+//       telephone: user.telephone,
+//       logo: user.logo,
+//       devise: user.devise,
+//       token: generateToken(user._id), // Générer un token d'authentification
+//       abonnementStatus: user.abonnementStatus,
+//       cleAcces: user.cleAcces,
+//       dateExpiration: user.dateExpiration
+//     });
+//   } else {
+//     res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur.' });
+//   }
+// });
 exports.signup = asyncHandler(async (req, res) => {
   const { nom, prenom, email, password, adresse, telephone, logo, devise } = req.body;
 
@@ -62,29 +121,7 @@ exports.signup = asyncHandler(async (req, res) => {
 
 
 // Connexion d'un utilisateur
-// exports.login = asyncHandler(async (req, res) => {
-//   const { email, password } = req.body;
 
-//   const user = await User.findOne({ email });
-
-//   if (user && (await bcrypt.compare(password, user.password))) {
-//     res.json({
-//       _id: user._id,
-//       nom: user.nom,
-//       prenom: user.prenom,
-//       email: user.email,
-//       userType: user.userType,
-//       adresse: user.adresse,
-//       telephone: user.telephone,
-//       logo: user.logo,
-//       devise: user.devise,
-//       token: generateToken(user._id),
-//     });
-//   } else {
-//     res.status(401);
-//     throw new Error('Email ou mot de passe incorrect.');
-//   }
-// });
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });

@@ -64,7 +64,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-  dateExpiration: { type: Date },
+  dateExpiration: { type: Date,
+   },
   stripeCustomerId: {
     type: String,
     required: false, // Non requis initialement, sera rempli après la création du client Stripe

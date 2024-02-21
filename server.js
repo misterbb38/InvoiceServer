@@ -32,11 +32,13 @@ if (process.env.NODE_ENV === 'development') {
 const invoice = require('./routes/invoiceRoutes');
 const client = require('./routes/clientRoutes');
 const user = require('./routes/userRoutes');
+const notification = require('./routes/notificationRoutes');
 
 // Monter les routeurs
 app.use('/api/invoice', invoice);
 app.use('/api/client', client);
 app.use('/api/user', user);
+app.use('/api/notification', notification);
 app.use('/uploads', express.static('uploads'));
 
 

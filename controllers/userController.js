@@ -42,6 +42,11 @@ exports.signup = asyncHandler(async (req, res) => {
   });
 
   if (user) {
+    
+    await Notification.create({
+      userId: user._id,
+      message: "Bienvenue ! Vous avez 7 jours d'essai gratuits. Profitez de nos services.",
+    });
     res.status(201).json({
       _id: user._id,
       nom: user.nom,
@@ -113,44 +118,7 @@ exports.getProfile = asyncHandler(async (req, res) => {
   }
 });
 
-// Modifier le profil de l'utilisateur
-// exports.updateProfile = asyncHandler(async (req, res) => {
-//     const user = await User.findById(req.user._id);
 
-//     if (user) {
-//       user.nom = req.body.nom || user.nom;
-//       user.prenom = req.body.prenom || user.prenom;
-//       user.email = req.body.email || user.email;
-//       user.adresse = req.body.adresse || user.adresse;
-//       user.telephone = req.body.telephone || user.telephone;
-//       user.logo = req.body.logo || user.logo;
-//       user.devise = req.body.devise || user.devise;
-
-//       // Vérifiez si un nouveau mot de passe est fourni
-//       if (req.body.password) {
-//         // Hacher le nouveau mot de passe avant de le sauvegarder
-//         const salt = await bcrypt.genSalt(10);
-//         user.password = await bcrypt.hash(req.body.password, salt);
-//       }
-
-//       const updatedUser = await user.save();
-
-//       res.json({
-//         _id: updatedUser._id,
-//         nom: updatedUser.nom,
-//         prenom: updatedUser.prenom,
-//         email: updatedUser.email,
-//         adresse: updatedUser.adresse,
-//         telephone: updatedUser.telephone,
-//         logo: updatedUser.logo,
-//         devise: updatedUser.devise,
-//         token: generateToken(updatedUser._id), // Générer un nouveau token avec le profil mis à jour
-//       });
-//     } else {
-//       res.status(404);
-//       throw new Error('Utilisateur non trouvé.');
-//     }
-//   });
 // Modifier le profil de l'utilisateur
 exports.updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -212,26 +180,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 
 
 // exports.assignAccessKey = asyncHandler(async (req, res) => {
-//   const { userId, duree } = req.body; // duree en mois
 
-//   // Générer une nouvelle clé d'accès et calculer la date d'expiration
-//   const cleAcces = uuidv4();
-//   const dateExpiration = new Date();
-//   dateExpiration.setMonth(dateExpiration.getMonth() + duree);
-
-//   // Mettre à jour l'utilisateur avec la nouvelle clé et la date d'expiration
-//   const updatedUser = await User.findByIdAndUpdate(
-//     userId,
-//     { $set: { cleAcces: cleAcces, dateExpiration: dateExpiration, abonnementStatus: 'active'  } },
-//     { new: true } // Retourner l'utilisateur après la mise à jour
-//   );
-
-//   if (!updatedUser) {
-//     return res.status(404).json({ message: 'Utilisateur non trouvé' });
-//   }
-
-//   res.status(200).json({ message: 'Clé d\'accès assignée avec succès', cleAcces, dateExpiration });
-// });
 exports.assignAccessKey = asyncHandler(async (req, res) => {
   const { userId, duree } = req.body; // Durée en mois
 

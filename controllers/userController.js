@@ -7,146 +7,90 @@ const Notification = require('../models/notificationModel.js')
 
 
 // Middleware pour générer un token JWT
-const generateToken = (id, isSecure = false) => {
-  const secret = isSecure ? process.env.JWT_SECRET_SECURE : process.env.JWT_SECRET;
-  const expiresIn = isSecure ? '15m' : '30d'; // 15 minutes pour les tokens sécurisés
 
-  return jwt.sign({ id }, secret, { expiresIn });
-};
-const generateAccessKeyToken = (user) => {
-  const payload = {
-    id: user._id,
-    cleValide: user.dateExpiration > new Date(),
-    userType: user.userType,
-  };
-
-  return jwt.sign(payload, process.env.ACCESS_KEY_JWT_SECRET, { expiresIn: '1h' });
+// Fonction pour générer un token JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '7d', // Expiration dans 7 jours
+  });
 };
 
-
-// exports.signup = asyncHandler(async (req, res) => {
-//   const { nom, prenom, email, password, adresse, telephone, logo, devise } = req.body;
-
-//   // Vérifier si l'utilisateur existe déjà
-//   const userExists = await User.findOne({ email });
-//   if (userExists) {
-//     return res.status(400).json({ message: 'Un utilisateur existe déjà avec cet email.' });
-//   }
-
-//   // Hachage du mot de passe
-//   const salt = await bcrypt.genSalt(10);
-//   const hashedPassword = await bcrypt.hash(password, salt);
-
-//   // Calculer la date d'expiration pour la clé d'accès (7 jours d'essai)
-//   const dateExpiration = new Date();
-//   dateExpiration.setDate(dateExpiration.getDate() + 7);
-
-//   // Création de l'utilisateur avec une clé d'accès valable pour 7 jours
-//   const user = await User.create({
-//     nom,
-//     prenom,
-//     email,
-//     password: hashedPassword,
-//     adresse,
-//     telephone,
-//     logo,
-//     devise,
-//     cleAcces: uuidv4(), // Générer une clé d'accès unique
-//     dateExpiration, // Définir la date d'expiration à 7 jours plus tard
-//     abonnementStatus: 'trial' // Définir le statut de l'abonnement à "trial"
-//   });
-
-//   if (user) {
-//     // Générer une notification pour l'utilisateur indiquant le début de sa période d'essai
-//     await Notification.create({
-//       userId: user._id,
-//       message: "Bienvenue ! Vous bénéficiez de 7 jours d'essai gratuit. Profitez pleinement de nos services.",
-//     });
-
-//     res.status(201).json({
-//       _id: user._id,
-//       nom: user.nom,
-//       prenom: user.prenom,
-//       email: user.email,
-//       adresse: user.adresse,
-//       telephone: user.telephone,
-//       logo: user.logo,
-//       devise: user.devise,
-//       token: generateToken(user._id), // Générer un token d'authentification
-//       abonnementStatus: user.abonnementStatus,
-//       cleAcces: user.cleAcces,
-//       dateExpiration: user.dateExpiration
-//     });
-//   } else {
-//     res.status(400).json({ message: 'Erreur lors de la création de l\'utilisateur.' });
-//   }
-// });
+// Inscription d'un nouvel utilisateur
 exports.signup = asyncHandler(async (req, res) => {
-  const { nom, prenom, email, password, adresse, telephone, logo, devise } = req.body;
+  const { nom, prenom, email, password, adresse, telephone, logo, devise, nomEntreprise } = req.body;
 
   // Vérifier si l'utilisateur existe déjà
   const userExists = await User.findOne({ email });
   if (userExists) {
-    // Ici, au lieu de lancer une erreur, nous envoyons directement la réponse au client
-    return res.status(400).json({ success: false, message: 'Un utilisateur existe déjà avec cet email.' });
+    res.status(400);
+    throw new Error('Un utilisateur existe déjà avec cet email');
   }
 
-  // Hachage du mot de passe et création de l'utilisateur
+  // Créer un nouvel utilisateur
   const user = await User.create({
-    nom, prenom, email, password, adresse, telephone,
-    logo: req.file ? req.file.path : logo, // Utiliser le chemin du fichier uploadé si disponible
-    devise
+    nom,
+    prenom,
+    email,
+    password, // Sera hashé automatiquement par le hook pre 'save'
+    adresse,
+    telephone,
+    logo,
+    devise,
+    nomEntreprise,
+    cleAcces: generateToken(this._id), // Génération du token JWT comme clé d'accès
+    dateExpiration: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Date d'expiration dans 7 jours
   });
 
   if (user) {
     res.status(201).json({
-      success: true,
-      data: {
-        _id: user._id,
-        nom: user.nom,
-        prenom: user.prenom,
-        email: user.email,
-        adresse: user.adresse,
-        telephone: user.telephone,
-        logo: user.logo,
-        devise: user.devise,
-        token: generateToken(user._id),
-      }
-    });
-  } else {
-    // Si la création de l'utilisateur échoue pour une autre raison
-    return res.status(400).json({ success: false, message: 'Erreur lors de la création de l\'utilisateur.' });
-  }
-});
-
-
-// Connexion d'un utilisateur
-
-exports.login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-
-  if (user && (await bcrypt.compare(password, user.password))) {
-    const token = generateToken(user._id);
-    const accessKeyToken = generateAccessKeyToken(user); // Génère un token pour la clé d'accès
-
-    res.json({
       _id: user._id,
       nom: user.nom,
       prenom: user.prenom,
       email: user.email,
-      userType: user.userType,
       adresse: user.adresse,
       telephone: user.telephone,
       logo: user.logo,
       devise: user.devise,
-      token, // Token d'authentification
-      accessKeyToken, // Token pour la vérification de la clé d'accès
+      nomEntreprise: user.nomEntreprise,
+      cleAcces: user.cleAcces,
+      dateExpiration: user.dateExpiration,
+      token: generateToken(user._id), // Envoi du token JWT pour authentification immédiate
     });
   } else {
-    res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
+    res.status(400);
+    throw new Error('Données d\'utilisateur invalides');
   }
 });
+
+// Connexion d'un utilisateur
+exports.login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  // Trouver l'utilisateur par email
+  const user = await User.findOne({ email });
+
+  // Vérifier le mot de passe et l'existence de l'utilisateur
+  if (user && (await user.isCorrectPassword(password))) {
+    // Vérifier si la clé d'accès est expirée
+    
+      res.json({
+        _id: user._id,
+        nom: user.nom,
+        prenom: user.prenom,
+        email: user.email,
+        userType: user.userType, // Envoyer le type d'utilisateur pour utilisation côté front
+        dateExpiration: user.dateExpiration,// Indiquer que la clé d'accès n'est pas expirée
+        token: generateToken(user._id), // Générer un nouveau token pour la session
+      });
+    
+  } else {
+    res.status(401);
+    throw new Error('Email ou mot de passe invalide');
+  }
+});
+
+
+
 
 // Obtenir le profil de l'utilisateur
 exports.getProfile = asyncHandler(async (req, res) => {
@@ -267,15 +211,8 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 });
 
 
-
-
 // exports.assignAccessKey = asyncHandler(async (req, res) => {
 //   const { userId, duree } = req.body; // duree en mois
-//   const user = await User.findById(userId);
-
-//   if (!user) {
-//     return res.status(404).json({ message: 'Utilisateur non trouvé' });
-//   }
 
 //   // Générer une nouvelle clé d'accès et calculer la date d'expiration
 //   const cleAcces = uuidv4();
@@ -283,24 +220,31 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 //   dateExpiration.setMonth(dateExpiration.getMonth() + duree);
 
 //   // Mettre à jour l'utilisateur avec la nouvelle clé et la date d'expiration
-//   user.cleAcces = cleAcces;
-//   user.dateExpiration = dateExpiration;
-//   await user.save();
+//   const updatedUser = await User.findByIdAndUpdate(
+//     userId,
+//     { $set: { cleAcces: cleAcces, dateExpiration: dateExpiration, abonnementStatus: 'active'  } },
+//     { new: true } // Retourner l'utilisateur après la mise à jour
+//   );
+
+//   if (!updatedUser) {
+//     return res.status(404).json({ message: 'Utilisateur non trouvé' });
+//   }
 
 //   res.status(200).json({ message: 'Clé d\'accès assignée avec succès', cleAcces, dateExpiration });
 // });
 exports.assignAccessKey = asyncHandler(async (req, res) => {
-  const { userId, duree } = req.body; // duree en mois
+  const { userId, duree } = req.body; // Durée en mois
 
   // Générer une nouvelle clé d'accès et calculer la date d'expiration
   const cleAcces = uuidv4();
-  const dateExpiration = new Date();
+  const dateDebut = new Date(); // Date de début (aujourd'hui)
+  const dateExpiration = new Date(dateDebut);
   dateExpiration.setMonth(dateExpiration.getMonth() + duree);
 
   // Mettre à jour l'utilisateur avec la nouvelle clé et la date d'expiration
   const updatedUser = await User.findByIdAndUpdate(
     userId,
-    { $set: { cleAcces: cleAcces, dateExpiration: dateExpiration, abonnementStatus: 'active'  } },
+    { $set: { cleAcces: cleAcces, dateExpiration: dateExpiration, abonnementStatus: 'active' } },
     { new: true } // Retourner l'utilisateur après la mise à jour
   );
 
@@ -308,8 +252,16 @@ exports.assignAccessKey = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Utilisateur non trouvé' });
   }
 
-  res.status(200).json({ message: 'Clé d\'accès assignée avec succès', cleAcces, dateExpiration });
+  // Créer une notification pour informer l'utilisateur
+  const message = `Votre compte est activé du ${dateDebut.toLocaleDateString()} jusqu'au ${dateExpiration.toLocaleDateString()}.`;
+  await Notification.create({
+    userId: updatedUser._id,
+    message: message,
+  });
+
+  res.status(200).json({ message: 'Clé d\'accès assignée avec succès et notification envoyée.', cleAcces, dateExpiration });
 });
+
 
 
 // Obtenir tous les utilisateurs de type simple

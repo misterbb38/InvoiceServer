@@ -33,11 +33,4 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-exports.admin = asyncHandler(async (req, res, next) => {
-  if (req.user && req.user.userType === 'superadmin') {
-    next();
-  } else {
-    res.status(403);
-    throw new Error('Non autorisé en tant qu\'admin');
-  }
-});
+

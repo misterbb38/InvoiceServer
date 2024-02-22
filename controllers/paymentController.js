@@ -7,6 +7,7 @@ exports.createPayment = async (req, res) => {
     // Configuration de la facture (ajouter des articles, etc.)
     invoice.addItem("Ordinateur Lenovo L440", 1, 400000, 400000);
     invoice.totalAmount = 400000;
+    invoice.addChannels(['card', 'jonijoni-senegal', 'orange-money-senegal'])
 
     invoice.create()
         .then(() => {

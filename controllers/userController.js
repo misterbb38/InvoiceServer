@@ -54,7 +54,10 @@ exports.signup = asyncHandler(async (req, res) => {
       email: user.email,
       adresse: user.adresse,
       telephone: user.telephone,
+      adresse: user.adresse,
+      couleur: user.couleur,
       logo: user.logo,
+      site: user.site,
       devise: user.devise,
       nomEntreprise: user.nomEntreprise,
       cleAcces: user.cleAcces,
@@ -83,6 +86,14 @@ exports.login = asyncHandler(async (req, res) => {
         nom: user.nom,
         prenom: user.prenom,
         email: user.email,
+        adresse: user.adresse,
+      telephone: user.telephone,
+      adresse: user.adresse,
+      couleur: user.couleur,
+      logo: user.logo,
+      site: user.site,
+      devise: user.devise,
+      nomEntreprise: user.nomEntreprise,
         userType: user.userType, // Envoyer le type d'utilisateur pour utilisation côté front
         dateExpiration: user.dateExpiration,// Indiquer que la clé d'accès n'est pas expirée
         token: generateToken(user._id), // Générer un nouveau token pour la session
@@ -109,8 +120,13 @@ exports.getProfile = asyncHandler(async (req, res) => {
       email: user.email,
       adresse: user.adresse,
       telephone: user.telephone,
+      adresse: user.adresse,
+      couleur: user.couleur,
+      Type: user.Type,
       logo: user.logo,
+      site: user.site,
       devise: user.devise,
+      nomEntreprise: user.nomEntreprise,
     });
   } else {
     res.status(404);
@@ -127,9 +143,15 @@ exports.updateProfile = asyncHandler(async (req, res) => {
     user.nom = req.body.nom || user.nom;
     user.prenom = req.body.prenom || user.prenom;
     user.email = req.body.email || user.email;
+    user.nomEntreprise = req.body.nomEntreprise || user.nomEntreprise;
     user.adresse = req.body.adresse || user.adresse;
+    user.site = req.body.site || user.site;
+    user.telephone = req.body.telephone || user.telephone;
     user.telephone = req.body.telephone || user.telephone;
     user.userType = req.body.userType || user.userType;
+    user.devise = req.body.devise || user.devise;
+    user.couleur = req.body.couleur || user.couleur;
+
     // Mettre à jour le logo seulement si un nouveau fichier a été uploadé
     if (req.file) {
       user.logo = req.file.path;

@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Le nom est requis'],
   },
-  prenom : {
+  prenom: {
     type: String,
     required: [true, 'Le nom du entreprise si vous j en avais'],
   },
@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
       },
       message: props => `${props.value} n'est pas une adresse email valide!`
@@ -50,22 +50,35 @@ const userSchema = new mongoose.Schema({
       values: ['simple', 'superadmin'],
       message: '{VALUE} n\'est pas un type d\'utilisateur valide'
     },
-    // Nouveaux champs pour la clé d'accès
-  
- 
-  nomEntreprise: {
-      type: String,
-      required: [false, 'Le nom de l\'entreprise est optionnel'],
-    },
-    
     default: 'simple',
+    // Nouveaux champs pour la clé d'accès
   },
+
+  nomEntreprise: {
+    type: String,
+    required: [false, 'Le nom de l\'entreprise est optionnel'],
+    default: "Nom entreprise",
+  },
+  site: {
+    type: String,
+    required: [false, 'Le site de l\'entreprise est optionnel'],
+    default: "www.exemple.com"
+  },
+  couleur: {
+    type: String,
+    required: [false, 'Le site de l\'entreprise est optionnel'],
+    default: "blue",
+  },
+
+
+
   cleAcces: {
     type: String,
     default: '',
   },
-  dateExpiration: { type: Date,
-   },
+  dateExpiration: {
+    type: Date,
+  },
   stripeCustomerId: {
     type: String,
     required: false, // Non requis initialement, sera rempli après la création du client Stripe
@@ -79,11 +92,11 @@ const userSchema = new mongoose.Schema({
     type: Date,
     required: false, // Calculé lors de l'inscription et basé sur la période d'essai de 7 jours
   },
-    
+
 }, { timestamps: true });
 
 // Hook pour hasher le mot de passe avant de sauvegarder l'utilisateur
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -92,7 +105,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Méthode pour vérifier le mot de passe lors de la connexion
-userSchema.methods.isCorrectPassword = async function(password) {
+userSchema.methods.isCorrectPassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 

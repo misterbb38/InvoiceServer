@@ -202,9 +202,9 @@ exports.getInvoiceStats = asyncHandler(async (req, res, next) => {
 
 //     // Initialiser les résultats pour chaque statut avec des montants à 0 pour chaque mois
 //     let results = {
-//         paid: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
-//         pending: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
-//         cancelled: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 }))
+//         Payée: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
+//         Attente: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
+//         Annullée: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 }))
 //     };
 
 //     // Remplir les résultats avec les données réelles
@@ -260,9 +260,9 @@ exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
 
     // Initialiser et remplir les résultats comme avant
     let results = {
-        paid: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
-        pending: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
-        cancelled: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 }))
+        Payée: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
+        Attente: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 })),
+        Annullée: Array(12).fill(null).map(() => ({ totalAmount: 0, count: 0 }))
     };
 
     summary.forEach(item => {
@@ -297,24 +297,24 @@ exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
 //         {
 //             $group: {
 //                 _id: "$client",
-//                 totalAmountPaid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, "$total", 0] } },
-//                 totalAmountPending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, "$total", 0] } },
-//                 totalAmountCancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, "$total", 0] } },
-//                 countPaid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, 1, 0] } },
-//                 countPending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
-//                 countCancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } }
+//                 totalAmountPayée: { $sum: { $cond: [{ $eq: ["$status", "Payée"] }, "$total", 0] } },
+//                 totalAmountAttente: { $sum: { $cond: [{ $eq: ["$status", "Attente"] }, "$total", 0] } },
+//                 totalAmountAnnullée: { $sum: { $cond: [{ $eq: ["$status", "Annullée"] }, "$total", 0] } },
+//                 countPayée: { $sum: { $cond: [{ $eq: ["$status", "Payée"] }, 1, 0] } },
+//                 countAttente: { $sum: { $cond: [{ $eq: ["$status", "Attente"] }, 1, 0] } },
+//                 countAnnullée: { $sum: { $cond: [{ $eq: ["$status", "Annullée"] }, 1, 0] } }
 //             }
 //         },
 //         {
 //             $project: {
 //                 _id: 0,
 //                 client: "$_id",
-//                 totalAmountPaid: 1,
-//                 totalAmountPending: 1,
-//                 totalAmountCancelled: 1,
-//                 countPaid: 1,
-//                 countPending: 1,
-//                 countCancelled: 1
+//                 totalAmountPayée: 1,
+//                 totalAmountAttente: 1,
+//                 totalAmountAnnullée: 1,
+//                 countPayée: 1,
+//                 countAttente: 1,
+//                 countAnnullée: 1
 //             }
 //         }
 //     ].filter(stage => Object.keys(stage).length > 0); // Filtrer les étapes vides
@@ -350,24 +350,24 @@ exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
         {
             $group: {
                 _id: "$client",
-                totalAmountPaid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, "$total", 0] } },
-                totalAmountPending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, "$total", 0] } },
-                totalAmountCancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, "$total", 0] } },
-                countPaid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, 1, 0] } },
-                countPending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
-                countCancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } }
+                totalAmountPayée: { $sum: { $cond: [{ $eq: ["$status", "Payée"] }, "$total", 0] } },
+                totalAmountAttente: { $sum: { $cond: [{ $eq: ["$status", "Attente"] }, "$total", 0] } },
+                totalAmountAnnullée: { $sum: { $cond: [{ $eq: ["$status", "Annullée"] }, "$total", 0] } },
+                countPayée: { $sum: { $cond: [{ $eq: ["$status", "Payée"] }, 1, 0] } },
+                countAttente: { $sum: { $cond: [{ $eq: ["$status", "Attente"] }, 1, 0] } },
+                countAnnullée: { $sum: { $cond: [{ $eq: ["$status", "Annullée"] }, 1, 0] } }
             }
         },
         {
             $project: {
                 _id: 0,
                 client: "$_id",
-                totalAmountPaid: 1,
-                totalAmountPending: 1,
-                totalAmountCancelled: 1,
-                countPaid: 1,
-                countPending: 1,
-                countCancelled: 1
+                totalAmountPayée: 1,
+                totalAmountAttente: 1,
+                totalAmountAnnullée: 1,
+                countPayée: 1,
+                countAttente: 1,
+                countAnnullée: 1
             }
         }
     ];
@@ -416,9 +416,9 @@ exports.getInvoicesSummaryByClient = asyncHandler(async (req, res, next) => {
 //         const { client, month, status } = _id;
 //         if (!results[client.name]) {
 //             results[client.name] = Array.from({ length: 12 }, () => ({
-//                 paid: { count: 0, totalAmount: 0 },
-//                 pending: { count: 0, totalAmount: 0 },
-//                 cancelled: { count: 0, totalAmount: 0 }
+//                 Payée: { count: 0, totalAmount: 0 },
+//                 Attente: { count: 0, totalAmount: 0 },
+//                 Annullée: { count: 0, totalAmount: 0 }
 //             }));
 //         }
 //         if (results[client.name][month - 1][status]) {
@@ -473,9 +473,9 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res) => {
         const { client, month, status } = _id;
         if (!results[client.name]) {
             results[client.name] = Array.from({ length: 12 }, () => ({
-                paid: { count: 0, totalAmount: 0 },
-                pending: { count: 0, totalAmount: 0 },
-                cancelled: { count: 0, totalAmount: 0 }
+                Payée: { count: 0, totalAmount: 0 },
+                Attente: { count: 0, totalAmount: 0 },
+                Annullée: { count: 0, totalAmount: 0 }
             }));
         }
         if (results[client.name][month - 1][status]) {

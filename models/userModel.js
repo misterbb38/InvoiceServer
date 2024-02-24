@@ -85,7 +85,7 @@ const userSchema = new mongoose.Schema({
   },
   abonnementStatus: {
     type: String,
-    enum: ['active', 'trial', 'expired', 'cancelled'],
+    enum: ['active', 'trial', 'expired', 'Annullée'],
     default: 'trial',
   },
   trialEndsAt: {

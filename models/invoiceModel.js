@@ -30,7 +30,7 @@ const InvoiceSchema = new Schema({
     date: { type: Date, default: Date.now },
     total: { type: Number, required: true },
     type: { type: String, enum: ['devis', 'facture'], required: [true, 'Le type de document est obligatoire'] },
-    status: { type: String, enum: ['pending', 'paid', 'cancelled'], default: 'pending' }
+    status: { type: String, enum: [ 'Attente', 'Payée', 'Annullée', 'pending', 'paid', 'cancelled'], default: 'pending' }
 }, { timestamps: true });
 
 // Middleware pour calculer le total de la facture avant de sauvegarder

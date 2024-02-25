@@ -127,6 +127,7 @@ exports.getProfile = asyncHandler(async (req, res) => {
       site: user.site,
       devise: user.devise,
       nomEntreprise: user.nomEntreprise,
+      dateExpiration: user.dateExpiration
     });
   } else {
     res.status(404);

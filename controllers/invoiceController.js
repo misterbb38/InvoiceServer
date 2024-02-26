@@ -4,6 +4,7 @@ const Invoice = require('../models/invoiceModel.js')
 const multer = require('multer');
 const readExcel = require('read-excel-file/node');
 const mongoose= require('mongoose');
+const InvoiceCounter = require('../models/InvoiceCounter');
 
 
 // Configuration de Multer pour le téléchargement de fichiers Excel
@@ -49,13 +50,26 @@ exports.getInvoice = asyncHandler(async (req, res, next) => {
 // @desc   Créer une nouvelle facture
 // @route  POST /api/invoices
 // @access Private
+
+
 // exports.createInvoice = asyncHandler(async (req, res, next) => {
-//     const invoice = await Invoice.create(req.body);
+//     const invoice = await Invoice.create({ ...req.body, user: req.user._id });
 //     res.status(201).json({ success: true, data: invoice });
 // });
 
 exports.createInvoice = asyncHandler(async (req, res, next) => {
-    const invoice = await Invoice.create({ ...req.body, user: req.user._id });
+    // Rechercher le compteur de facture pour cet utilisateur ou le créer s'il n'existe pas
+    const invoiceCounter = await InvoiceCounter.findOneAndUpdate(
+        { user: req.user._id },
+        { $inc: { lastInvoiceNumber: 1 } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    // Créer la facture avec le numéro de facture incrémenté
+    const invoiceNumber = invoiceCounter.lastInvoiceNumber;
+    const invoiceData = { ...req.body, user: req.user._id, invoiceNumber };
+    const invoice = await Invoice.create(invoiceData);
+
     res.status(201).json({ success: true, data: invoice });
 });
 
@@ -602,6 +616,14 @@ exports.addInvoicesFromExcel = asyncHandler(async (req, res, next) => {
                         total: item.TotalItem,
                     }))
                 };
+                const invoiceCounter = await InvoiceCounter.findOneAndUpdate(
+                    { user: userId },
+                    { $inc: { lastInvoiceNumber: 1 } },
+                    { new: true, upsert: true }
+                );
+
+                // Ajouter le numéro de facture incrémenté à l'objet invoice
+                invoice.invoiceNumber = invoiceCounter.lastInvoiceNumber;
 
                 // Insertion de la facture dans la base de données
                 await Invoice.create(invoice);

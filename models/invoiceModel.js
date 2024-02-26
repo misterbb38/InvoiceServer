@@ -27,6 +27,7 @@ const InvoiceSchema = new Schema({
         telephone: { type: String, required: [true, 'Le numéro du client est obligatoire'] },
     },
     items: [InvoiceItemSchema],
+    invoiceNumber: { type: Number, required: [true, 'Le numéro de facture est obligatoire'] },
     date: { type: Date, default: Date.now },
     total: { type: Number, required: true },
     type: { type: String, enum: ['devis', 'facture'], required: [true, 'Le type de document est obligatoire'] },

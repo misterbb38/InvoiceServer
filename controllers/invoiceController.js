@@ -3,39 +3,31 @@ const asyncHandler = require('../middleware/async.js')
 const Invoice = require('../models/invoiceModel.js')
 const multer = require('multer');
 const readExcel = require('read-excel-file/node');
-const mongoose= require('mongoose');
+const mongoose = require('mongoose');
 const InvoiceCounter = require('../models/InvoiceCounter');
 
 
 // Configuration de Multer pour le téléchargement de fichiers Excel
 const upload = multer({ dest: 'uploads/' });
-    
+
 // Middleware pour la route de téléchargement de fichier
 exports.uploadInvoiceFile = upload.single('file');
- 
+
 
 exports.getInvoices = asyncHandler(async (req, res, next) => {
-    
-        // Sans pagination, on récupère simplement toutes les factures
-        const invoices = await Invoice.find({ user: req.user._id});
 
-        // On renvoie les factures récupérées
-        res.status(200).json({ success: true, count: invoices.length, data: invoices });
-    
+    // Sans pagination, on récupère simplement toutes les factures
+    const invoices = await Invoice.find({ user: req.user._id });
+
+    // On renvoie les factures récupérées
+    res.status(200).json({ success: true, count: invoices.length, data: invoices });
+
 });
 
 // @desc   Obtenir une seule facture par ID
 // @route  GET /api/invoices/:id
 // @access Public
-// exports.getInvoice = asyncHandler(async (req, res, next) => {
-//     const invoice = await Invoice.findById(req.params.id).populate('Client');
 
-//     if (!invoice) {
-//         return next(new ErrorResponse(`Facture non trouvée avec l'ID ${req.params.id}`, 404));
-//     }
-
-//     res.status(200).json({ success: true, data: invoice });
-// });
 
 exports.getInvoice = asyncHandler(async (req, res, next) => {
     const invoice = await Invoice.findOne({ _id: req.params.id, user: req.user._id });
@@ -242,8 +234,8 @@ exports.getFilteredInvoiceStats = asyncHandler(async (req, res, next) => {
             // Premièrement, filtrer les factures par utilisateur authentifié
             $match: {
                 user: new mongoose.Types.ObjectId(userId),
-                 // Ajouter ce filtre pour spécifier le type
-                 type: "facture"
+                // Ajouter ce filtre pour spécifier le type
+                type: "facture"
             }
         },
         {
@@ -504,32 +496,32 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res) => {
 
 
 // exports.addInvoicesFromExcel = asyncHandler( async (req, res, next) => {
-   
+
 //       if (req.file && req.file.path) {
 //         // Lire le fichier Excel
 //         readExcel(req.file.path).then(async (rows) => {
 //           // Supposer que la première ligne contient les en-têtes
 //           const headers = rows.shift();
-  
+
 //           // Regrouper les lignes par FactureID
 //           const groupedByInvoiceId = rows.reduce((acc, row) => {
 //             const invoiceData = row.reduce((invoiceObj, col, index) => {
 //               invoiceObj[headers[index]] = col;
 //               return invoiceObj;
 //             }, {});
-  
+
 //             if (!acc[invoiceData.FactureID]) {
 //               acc[invoiceData.FactureID] = [];
 //             }
-  
+
 //             acc[invoiceData.FactureID].push(invoiceData);
 //             return acc;
 //           }, {});
-  
+
 //           // Traitement de chaque facture
 //           for (const [invoiceId, items] of Object.entries(groupedByInvoiceId)) {
 //             const { ClientName, ClientAddress, ClientEmail, ClientTelephone, Date, Type, Status, TotalFacture } = items[0]; // Infos facture basées sur le premier article
-  
+
 //             // Créer l'objet facture sans les articles pour l'instant
 //             let invoice = {
 //               client: {
@@ -550,11 +542,11 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res) => {
 //                 total: item.TotalItem,
 //               }))
 //             };
-  
+
 //             // Insertion de la facture dans la base de données
 //             await Invoice.create(invoice);
 //           }
-  
+
 //           res.status(201).json({
 //             success: true,
 //             message: 'Factures ajoutées avec succès depuis le fichier Excel'
@@ -563,7 +555,7 @@ exports.getClientMonthlyInvoiceStats = asyncHandler(async (req, res) => {
 //       } else {
 //         throw new Error('Fichier non fourni ou non valide');
 //       }
-    
+
 //   });
 
 exports.addInvoicesFromExcel = asyncHandler(async (req, res, next) => {

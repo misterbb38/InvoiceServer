@@ -33,6 +33,7 @@ const invoice = require('./routes/invoiceRoutes');
 const client = require('./routes/clientRoutes');
 const user = require('./routes/userRoutes');
 const notification = require('./routes/notificationRoutes');
+const produitRoutes = require('./routes/produitRoutes'); // Mettez à jour le chemin selon votre structure de fichiers
 //const payment = require('./routes/paymentRoutes');
 
 // Monter les routeurs
@@ -41,6 +42,7 @@ app.use('/api/client', client);
 app.use('/api/user', user);
 //app.use('/api/payment', payment);
 app.use('/api/notification', notification);
+app.use('/api/produit', produitRoutes);
 app.use('/uploads', express.static('uploads'));
 
 

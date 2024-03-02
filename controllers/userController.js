@@ -42,7 +42,7 @@ exports.signup = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    
+
     await Notification.create({
       userId: user._id,
       message: "Bienvenue ! Vous avez 7 jours d'essai gratuits. Profitez de nos services.",
@@ -80,13 +80,13 @@ exports.login = asyncHandler(async (req, res) => {
   // Vérifier le mot de passe et l'existence de l'utilisateur
   if (user && (await user.isCorrectPassword(password))) {
     // Vérifier si la clé d'accès est expirée
-    
-      res.json({
-        _id: user._id,
-        nom: user.nom,
-        prenom: user.prenom,
-        email: user.email,
-        adresse: user.adresse,
+
+    res.json({
+      _id: user._id,
+      nom: user.nom,
+      prenom: user.prenom,
+      email: user.email,
+      adresse: user.adresse,
       telephone: user.telephone,
       adresse: user.adresse,
       couleur: user.couleur,
@@ -94,11 +94,11 @@ exports.login = asyncHandler(async (req, res) => {
       site: user.site,
       devise: user.devise,
       nomEntreprise: user.nomEntreprise,
-        userType: user.userType, // Envoyer le type d'utilisateur pour utilisation côté front
-        dateExpiration: user.dateExpiration,// Indiquer que la clé d'accès n'est pas expirée
-        token: generateToken(user._id), // Générer un nouveau token pour la session
-      });
-    
+      userType: user.userType, // Envoyer le type d'utilisateur pour utilisation côté front
+      dateExpiration: user.dateExpiration,// Indiquer que la clé d'accès n'est pas expirée
+      token: generateToken(user._id), // Générer un nouveau token pour la session
+    });
+
   } else {
     res.status(401);
     throw new Error('Email ou mot de passe invalide');

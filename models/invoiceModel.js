@@ -4,6 +4,11 @@ const Schema = mongoose.Schema;
 const InvoiceItemSchema = new Schema({
     ref: { type: String, required: [true, 'La référence est obligatoire'] },
     description: { type: String, required: [true, 'La description est obligatoire'] },
+    category: { 
+        type: String, 
+        enum: ['Traduction', 'Révision'], 
+        required: [true, 'La catégorie est obligatoire'] 
+    },
     quantity: { type: Number, required: [true, 'La quantité est obligatoire'], min: [0, 'La quantité ne peut pas être négative'] },
     price: { type: Number, required: [true, 'Le prix est obligatoire'], min: [0, 'Le prix ne peut pas être négatif'] },
     total: { type: Number, required: [true, 'Le total est obligatoire'] }

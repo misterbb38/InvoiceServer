@@ -75,7 +75,7 @@ const InvoiceItemSchema = new Schema({
     category: { 
         type: String, 
         enum: ['Traduction', 'Révision'], 
-        required: [true, 'La catégorie est obligatoire'] 
+        required: false 
     },
     quantity: { type: Number, required: [true, 'La quantité est obligatoire'], min: [0, 'La quantité ne peut pas être négative'] },
     price: { type: Number, required: [true, 'Le prix est obligatoire'], min: [0, 'Le prix ne peut pas être négatif'] },
